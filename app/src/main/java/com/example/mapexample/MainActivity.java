@@ -10,10 +10,10 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 public class MainActivity extends AppCompatActivity {
 
     Button askPermissionButton;
+    TextView getLocationTextView;
     FusedLocationProviderClient mFusedLocationClient;
 
     @Override
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getLocationTextView = findViewById(R.id.getLocation);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         askPermissionButton = findViewById(R.id.askPermission);
 
@@ -73,7 +75,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(Location location) {
                     if(location!=null){
-                        Toast.makeText(MainActivity.this, "Location Found", Toast.LENGTH_LONG).show();
+                        Double latitude = location.getLatitude();
+                        Double longitude = location.getLongitude();
+
+                        getLocationTextView.setText("Latitude is : "+latitude+"\nLongitude is : "+longitude);
                     }
                 }
             });
