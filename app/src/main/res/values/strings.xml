@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SwistoMap</string>
+    <string name="map_key" translatable="false">AIzaSyAixffsTpkcFw-OE3lvkuW-AUlITOntbXA</string>
 </resources>

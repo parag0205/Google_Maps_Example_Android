@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -18,33 +19,86 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     Button askPermissionButton;
     TextView getLocationTextView;
     FusedLocationProviderClient mFusedLocationClient;
+    Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getLocationTextView = findViewById(R.id.getLocation);
+        //getLocationTextView = findViewById(R.id.getLocation);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        askPermissionButton = findViewById(R.id.askPermission);
+        checkRunTimePermission();
+        //askPermissionButton = findViewById(R.id.askPermission);
 
-        askPermissionButton.setOnClickListener(new View.OnClickListener() {
+        /*askPermissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkRunTimePermission();
             }
-        });
+        });*/
     }
 
     private void checkRunTimePermission() {
         if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]
+                    {Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }
+        Task<Location> locationTask = mFusedLocationClient.getLastLocation();
+        locationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    currentLocation = location;
+                    Toast.makeText(MainActivity.this, currentLocation.getLatitude() + "" + currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(MainActivity.this);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions().position(currentLatLng).title("This is my Current Location");
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(currentLatLng));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 5));
+        googleMap.addMarker(markerOptions);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        //super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1)//&&requestCode==RESULT_OK)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Location Permission Granted", Toast.LENGTH_SHORT).show();
+                checkRunTimePermission();
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+}
+        /*if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_COARSE_LOCATION)) {
@@ -82,10 +136,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
-        }
-    }
+        }*/
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         //super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode==1)//&&requestCode==RESULT_OK)
@@ -99,5 +152,4 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-}
+    }*/
